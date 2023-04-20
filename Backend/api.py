@@ -9,9 +9,9 @@ app = Flask(__name__)
 # print(type(apiData))
 
 
-@app.route("/")
+@app.route("/hello")
 def hello():
-    return "hello world"
+    return {"hello world": "world hello"}
 
 
 @app.route("/recommend/<id>")

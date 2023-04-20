@@ -14,6 +14,10 @@ def hello():
 
 @app.route("/<id>")
 def recommend(id):
-    return content_based_recommender(id).to_dict()
+    content = content_based_recommender(id)
+    if isinstance(content,str):
+        return content
+    else:
+        return content.to_dict()
 if __name__ == "__main__":
     app.run()

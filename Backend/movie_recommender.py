@@ -7,61 +7,52 @@ Original file is located at
     https://colab.research.google.com/drive/1DuCU_QFPJ4FlYeGSmLR5Dqmm7AiryQCN
 """
 
+from sklearn import metrics
+from sklearn.metrics.pairwise import linear_kernel
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import StratifiedShuffleSplit
+from xgboost import plot_importance, plot_tree
+from xgboost import XGBClassifier
+from sklearn.feature_selection import SelectFromModel
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import roc_curve
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.neighbors import NearestNeighbors
+from scipy.sparse import csr_matrix
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn import preprocessing
 import pandas as pd
 import numpy as np
 import warnings
 warnings.filterwarnings("ignore")
 # for preprocessing
-from sklearn import preprocessing
 
 # for custom transformer
-from sklearn.base import BaseEstimator, TransformerMixin
-from scipy.sparse import csr_matrix
-from sklearn.neighbors import NearestNeighbors
 # for creating pipeline
-from sklearn.pipeline import Pipeline, FeatureUnion
 
 # for various metrics and reporting
-from sklearn import metrics 
-from sklearn.metrics import roc_curve
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
 
 # feature selection
-from sklearn.feature_selection import SelectFromModel
 
 # xgboost library
-from xgboost import XGBClassifier
 
 # plot feature importance
-from xgboost import plot_importance, plot_tree
 
 movies = pd.read_csv("movies.csv")
 ratings = pd.read_csv("ratings.csv")
 
 movies.head
 
-bad_row = movies[movies['title'].str.contains ('(2006–2007)')]
-print(bad_row.index)
+bad_row = movies[movies['title'].str.contains('(2006–2007)')]
 # delete a single row by index value 0
 movies = movies.drop(bad_row.index, axis=0)
-#Bad_row = movies[movies['movieId'] == '171749'].index
-#movies = movies.drop(index=Bad_row)
+# Bad_row = movies[movies['movieId'] == '171749'].index
+# movies = movies.drop(index=Bad_row)
 movies.shape
 
-print("Number of Users who rated at least one movie: ", ratings.userId.nunique())
-print("-"*25)
-
-# Number of Movies in the dataset:
-print("Number of Movies in the dataset:", movies.title.nunique())
-print("-"*25)
-
-# Unique of Rating points in the dataset:
-print("Unique Rating points:", ratings.rating.unique())
 
 
 # Combine table for movies and ratings
@@ -70,25 +61,30 @@ MvRt_dataset = pd.merge(movies, ratings, on="movieId")
 MvRt_dataset['movie_year'] = MvRt_dataset.title.str.extract('.*\((.*)\).*')
 # Removing year from the movie titles
 MvRt_dataset['title'] = MvRt_dataset.title.str.split('(').str[0].str[:-1]
-#MvRt_dataset.to_csv (r'MvRt_dataframe.csv', index = False, header=True)
+# MvRt_dataset.to_csv (r'MvRt_dataframe.csv', index = False, header=True)
 MvRt_dataset
+
 
 def Convert(title):
     return title.lower()
 
+
 MvRt_dataset.title = MvRt_dataset.title.apply(Convert)
 movies.title = movies.title.apply(Convert)
 
-# Combine table for User ID - Movie ID 
-UsMv_dataset = ratings.pivot(index='movieId',columns='userId',values='rating')
+# Combine table for User ID - Movie ID
+UsMv_dataset = ratings.pivot(
+    index='movieId', columns='userId', values='rating')
 
 # Replace NA with 0
-UsMv_dataset.fillna(0,inplace=True)
+UsMv_dataset.fillna(0, inplace=True)
 UsMv_dataset.head()
 
-movieId_dict = MvRt_dataset.drop_duplicates('title')[['movieId', 'title']].set_index('movieId').to_dict()['title']
-#list(movieId_dict.items())[:5]
-MvTl_dataset = MvRt_dataset.pivot_table(index="userId", columns='movieId', values="rating").fillna(0)
+movieId_dict = MvRt_dataset.drop_duplicates(
+    'title')[['movieId', 'title']].set_index('movieId').to_dict()['title']
+# list(movieId_dict.items())[:5]
+MvTl_dataset = MvRt_dataset.pivot_table(
+    index="userId", columns='movieId', values="rating").fillna(0)
 # Replacing dataRecommendation columns with the movie titles
 MvTl_dataset.columns = MvTl_dataset.columns.map(movieId_dict)
 MvTl_dataset.head(5)
@@ -98,21 +94,25 @@ no_user_voted = ratings.groupby('movieId')['rating'].agg('count')
 no_movies_voted = ratings.groupby('userId')['rating'].agg('count')
 
 # Making the necessary modifications as per the 50 movies
-UsMv_dataset=UsMv_dataset.loc[:,no_movies_voted[no_movies_voted > 50].index]
+UsMv_dataset = UsMv_dataset.loc[:, no_movies_voted[no_movies_voted > 50].index]
 UsMv_dataset.head(5)
 
-MvRt_mc = pd.DataFrame(MvRt_dataset.groupby('title')['rating'].mean().sort_values(ascending = False))
-MvRt_mc["NumOfRatings"] = MvRt_dataset.groupby('title')["rating"].count().sort_values(ascending = False)
-MvRt_mc.sort_values(by=['NumOfRatings', 'rating'],inplace=True, ascending=False)
+MvRt_mc = pd.DataFrame(MvRt_dataset.groupby(
+    'title')['rating'].mean().sort_values(ascending=False))
+MvRt_mc["NumOfRatings"] = MvRt_dataset.groupby(
+    'title')["rating"].count().sort_values(ascending=False)
+MvRt_mc.sort_values(by=['NumOfRatings', 'rating'],
+                    inplace=True, ascending=False)
 MvRt_mc.drop(MvRt_mc[MvRt_mc.rating < 3].index, inplace=True)
 MvRt_mc
 
-MvRt_cn = pd.DataFrame(MvRt_dataset.groupby(["movieId", "title", "genres", "movie_year"], as_index=False)["rating"].mean().sort_values(by = ['rating'], axis=0, ascending=False, inplace=False))
+MvRt_cn = pd.DataFrame(MvRt_dataset.groupby(["movieId", "title", "genres", "movie_year"], as_index=False)[
+                       "rating"].mean().sort_values(by=['rating'], axis=0, ascending=False, inplace=False))
 MvRt_cn.head(20)
 MvRt_cn.shape
 
 title_rating = MvRt_mc['rating'] * MvRt_mc['NumOfRatings']
-title_rating = title_rating.sort_values(ascending = False).head(20)
+title_rating = title_rating.sort_values(ascending=False).head(20)
 
 
 #  Dropping duplicate movie titles
@@ -121,166 +121,186 @@ unique_movie = MvRt_dataset.drop_duplicates(['title'])
 unique_movie = unique_movie.movie_year.value_counts().reset_index().sort_values('index')
 
 #  Splitting genres and create new row with each genre (https://stackoverflow.com/questions/50731229/split-cell-into-multiple-rows-in-pandas-dataframe)
-MvRt_td = MvRt_dataset.assign(genres=MvRt_dataset.genres.str.split('|')).explode('genres').reset_index(drop=True)
+MvRt_td = MvRt_dataset.assign(genres=MvRt_dataset.genres.str.split(
+    '|')).explode('genres').reset_index(drop=True)
 
-MvRt_tdsm = pd.Series(MvRt_td.groupby('genres')['rating'].sum().sort_values(ascending = False))
-#print(MvRt_tdsm)
+MvRt_tdsm = pd.Series(MvRt_td.groupby('genres')[
+                      'rating'].sum().sort_values(ascending=False))
+# print(MvRt_tdsm)
 
 
 # Create OneHot encoding for genres for AutoAI
 genres_ohe = MvRt_dataset['genres'].str.get_dummies(sep='|')
-#genres_ohe = pd.get_dummies(MvRt_dataset['genres'], prefix=g)
-#print(genres_ohe)
+# genres_ohe = pd.get_dummies(MvRt_dataset['genres'], prefix=g)
+# print(genres_ohe)
 MvRt_ai = pd.merge(
     left=MvRt_dataset,
     right=genres_ohe,
     left_index=True,
     right_index=True,
 )
-#print(MvRt_ai)
+# print(MvRt_ai)
 
-#split data into x and y variables 
-from sklearn.model_selection import StratifiedShuffleSplit
-xVar = np.array(MvRt_ai[["movieId","title","userId","(no genres listed)","Action","Adventure","Animation","Children","Comedy","Crime","Documentary","Drama","Fantasy","Film-Noir","Horror","IMAX","Musical","Mystery","Romance","Sci-Fi","Thriller","War","Western"]])
+# split data into x and y variables
+xVar = np.array(MvRt_ai[["movieId", "title", "userId", "(no genres listed)", "Action", "Adventure", "Animation", "Children", "Comedy", "Crime",
+                "Documentary", "Drama", "Fantasy", "Film-Noir", "Horror", "IMAX", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western"]])
 yVar = np.array(MvRt_ai["rating"])
 
-stratSplit = StratifiedShuffleSplit(n_splits=1, test_size=0.02, train_size=0.05, random_state=42)
+stratSplit = StratifiedShuffleSplit(
+    n_splits=1, test_size=0.02, train_size=0.05, random_state=42)
 stratSplit.get_n_splits(xVar, yVar)
-#print(stratSplit)
-#StratifiedShuffleSplit(n_splits=5, random_state=0, ...)
+# print(stratSplit)
+# StratifiedShuffleSplit(n_splits=5, random_state=0, ...)
 for train_index, test_index in stratSplit.split(xVar, yVar):
-    #print("TRAIN:", train_index, "TEST:", test_index)
+    # print("TRAIN:", train_index, "TEST:", test_index)
     X_train, X_test = xVar[train_index], xVar[test_index]
     y_train, y_test = yVar[train_index], yVar[test_index]
 
-#Download file
-#np.savetxt("X_train.csv", X_train, delimiter=",")
-#pd.DataFrame(X_train).to_csv("X_train.csv")
+# Download file
+# np.savetxt("X_train.csv", X_train, delimiter=",")
+# pd.DataFrame(X_train).to_csv("X_train.csv")
 pd.DataFrame(X_test).to_csv("X_test.csv")
 pd.DataFrame(y_test).to_csv("y_test.csv")
 
 #  Count unique movies for each genres
-genres_value_counts = MvRt_dataset.drop_duplicates('movieId')['genres'].str.split('|', expand=True).stack().value_counts()
-#print(genres_value_counts)
+genres_value_counts = MvRt_dataset.drop_duplicates(
+    'movieId')['genres'].str.split('|', expand=True).stack().value_counts()
+# print(genres_value_counts)
 
-genres_value_counts = MvRt_dataset['genres'].str.split('|', expand=True).stack().value_counts()
-genres_list = genres_value_counts.to_frame('a').set_index('a', append=True).index.tolist()
-#print(genres_list)
-#genres_df = pd.DataFrame(genres_list, columns=['genres', 'count'])
-genre_rate = {'Action': 0, 'Comedy': 0, 'Adventure': 0, 'Fantasy': 0, 'Children': 0, 'Animation': 0, 'Romance': 0, 'Drama': 0, 'Thriller': 0, 'Crime': 0, 'Horror': 0, 'Mystery': 0, 'Sci-Fi': 0, 'War': 0, 'Musical': 0, 'Documentary': 0, 'IMAX': 0, 'Western': 0, 'Film-Noir': 0, '(no genres listed)': 0}
+genres_value_counts = MvRt_dataset['genres'].str.split(
+    '|', expand=True).stack().value_counts()
+genres_list = genres_value_counts.to_frame(
+    'a').set_index('a', append=True).index.tolist()
+# print(genres_list)
+# genres_df = pd.DataFrame(genres_list, columns=['genres', 'count'])
+genre_rate = {'Action': 0, 'Comedy': 0, 'Adventure': 0, 'Fantasy': 0, 'Children': 0, 'Animation': 0, 'Romance': 0, 'Drama': 0, 'Thriller': 0, 'Crime': 0,
+              'Horror': 0, 'Mystery': 0, 'Sci-Fi': 0, 'War': 0, 'Musical': 0, 'Documentary': 0, 'IMAX': 0, 'Western': 0, 'Film-Noir': 0, '(no genres listed)': 0}
 for index, row in MvRt_dataset.iterrows():
     rating_n = 0
     for x in genres_list:
         genres = x[0]
         if genres in row['genres']:
-            #print(genres, row['rating'])
+            # print(genres, row['rating'])
             rating_n = row['rating']+(genre_rate[(genres)])
             genre_rate.pop(genres)
             genre_rate[(genres)] = rating_n
 
-df_gener_rate = pd.Series(genre_rate).sort_values(ascending = False)
-#print(df_gener_rate)
+df_gener_rate = pd.Series(genre_rate).sort_values(ascending=False)
+# print(df_gener_rate)
 
 unique_movies = MvRt_dataset.drop_duplicates('title')
-unique_movies = unique_movies['genres'].str.split('|', expand=True).stack().value_counts()
+unique_movies = unique_movies['genres'].str.split(
+    '|', expand=True).stack().value_counts()
 
 
 # Removing sparsity
 csr_data = csr_matrix(UsMv_dataset.values)
 UsMv_dataset.reset_index(inplace=True)
 # Making the movie recommendation KNN system model
-knn = NearestNeighbors(metric='cosine', algorithm='brute', n_neighbors=20, n_jobs=-1)
+knn = NearestNeighbors(metric='cosine', algorithm='brute',
+                       n_neighbors=20, n_jobs=-1)
 knn.fit(csr_data)
 
-#UsMv_dataset
+# UsMv_dataset
+
 
 def get_movie_recommendation(movie_name):
     try:
         movie_name = movie_name.lower()
         n_movies_to_reccomend = 10
-        movie_list = movies[movies['title'].str.contains(movie_name)]  
-        if len(movie_list):        
-            movie_idx= movie_list.iloc[0]['movieId']
-            movie_idx = UsMv_dataset[UsMv_dataset['movieId'] == movie_idx].index[0]
-            distances , indices = knn.kneighbors(csr_data[movie_idx],n_neighbors=n_movies_to_reccomend+1)    
-            rec_movie_indices = sorted(list(zip(indices.squeeze().tolist(),distances.squeeze().tolist())),key=lambda x: x[1])[:0:-1]
+        movie_list = movies[movies['title'].str.contains(movie_name)]
+        if len(movie_list):
+            movie_idx = movie_list.iloc[0]['movieId']
+            movie_idx = UsMv_dataset[UsMv_dataset['movieId']
+                                     == movie_idx].index[0]
+            distances, indices = knn.kneighbors(
+                csr_data[movie_idx], n_neighbors=n_movies_to_reccomend+1)
+            rec_movie_indices = sorted(list(zip(indices.squeeze().tolist(
+            ), distances.squeeze().tolist())), key=lambda x: x[1])[:0:-1]
             recommend_frame = []
             for val in rec_movie_indices:
                 movie_idx = UsMv_dataset.iloc[val[0]]['movieId']
                 idx = UsMv_dataset[UsMv_dataset['movieId'] == movie_idx].index
-                recommend_frame.append({'Title':movies.iloc[idx]['title'].values[0],'Distance':val[1]})
-            df = pd.DataFrame(recommend_frame,index=range(1,n_movies_to_reccomend+1))
+                recommend_frame.append(
+                    {'Title': movies.iloc[idx]['title'].values[0], 'Distance': val[1]})
+            df = pd.DataFrame(recommend_frame, index=range(
+                1, n_movies_to_reccomend+1))
             return df
         else:
             return "No movies found. Please check your input"
     except:
-            return "No movies found. Please check your input"
+        return "No movies found. Please check your input"
 
-#get_movie_recommendation('Toy Story')
+# get_movie_recommendation('Toy Story')
+
 
 def Rec(movieName):
     movieName = movieName.lower()
     userRatings = MvTl_dataset[movieName]
     similar_movies = MvTl_dataset.corrwith(userRatings)
-    print(similar_movies)
     corr_movie = pd.DataFrame(similar_movies, columns=["Correlation"])
     corr_movie.dropna(inplace=True)
     corr_movie = corr_movie.join(MvRt_mc.NumOfRatings)
-    print(corr_movie)
-    Sugg = corr_movie[corr_movie.NumOfRatings > 50].sort_values("Correlation", ascending = False)
+    Sugg = corr_movie[corr_movie.NumOfRatings > 50].sort_values(
+        "Correlation", ascending=False)
     return Sugg[:10]
 
-#Rec('peter pan')
+# Rec('peter pan')
+
 
 # Another KNN Methos
-knn = NearestNeighbors(n_neighbors=11, metric='cosine', algorithm='brute', n_jobs=-1)
+knn = NearestNeighbors(n_neighbors=11, metric='cosine',
+                       algorithm='brute', n_jobs=-1)
 knn.fit(MvTl_dataset.values.T)
+
 
 def KNN_movie_recommendation(movie_name):
     try:
         n_movies_to_reccomend = 10
         movie_name = movie_name.lower()
-        recommendation_result = list(knn.kneighbors([MvTl_dataset[movie_name].values], (n_movies_to_reccomend+1)))
-        recommendations = pd.DataFrame(np.vstack((recommendation_result[1], recommendation_result[0])), 
+        recommendation_result = list(knn.kneighbors(
+            [MvTl_dataset[movie_name].values], (n_movies_to_reccomend+1)))
+        recommendations = pd.DataFrame(np.vstack((recommendation_result[1], recommendation_result[0])),
                                        index=['movieId', 'Cosine_Similarity (degree)']).T
         recommendations = recommendations.drop([0]).reset_index(drop=True)
-        a = MvTl_dataset.columns.to_frame().reset_index(drop=True).to_dict()['movieId']
+        a = MvTl_dataset.columns.to_frame().reset_index(
+            drop=True).to_dict()['movieId']
         recommendations.movieId = recommendations.movieId.map(a)
         return recommendations
     except:
-             return "No movies found. Please check your input"
+        return "No movies found. Please check your input"
 
-#KNN_movie_recommendation('peter pan')
+# KNN_movie_recommendation('peter pan')
+
 
 # Prepare data to use title and genres as metadata
 temp_MvRt = MvRt_dataset
 temp_MvRt['text'] = temp_MvRt[['genres', 'title']].agg(' '.join, axis=1)
-#temp_MvRt.reset_index().sort_values('index')
+# temp_MvRt.reset_index().sort_values('index')
 temp_MvRt = temp_MvRt.drop_duplicates(subset=['title'])
 temp_MvRt = temp_MvRt.reset_index(drop=True)
 temp_MvRt
 
-from sklearn.feature_extraction.text import TfidfVectorizer
 tfidf_vector = TfidfVectorizer(stop_words='english')
 tfidf_matrix = tfidf_vector.fit_transform(temp_MvRt['text'])
 
 # Get linear kernel to create a similarity matrix
-from sklearn.metrics.pairwise import linear_kernel
 sim_matrix = linear_kernel(tfidf_matrix, tfidf_matrix)
-#idx = 89338
-#sim_scores = list(enumerate(sim_matrix[idx]))
-#print(sim_scores)
+# idx = 89338
+# sim_scores = list(enumerate(sim_matrix[idx]))
+# print(sim_scores)
 
 # Construct a reverse map of the indices and movie titles
-#temp_MvRt = MvRt_cn.drop_duplicates(subset=['title'])
-indices = pd.Series(temp_MvRt.index, index=temp_MvRt['title']).drop_duplicates()
+# temp_MvRt = MvRt_cn.drop_duplicates(subset=['title'])
+indices = pd.Series(
+    temp_MvRt.index, index=temp_MvRt['title']).drop_duplicates()
 
 # def content_based_recommender(title, sim_scores=sim_matrix):
 #     title = title.lower()
 #     try:
 #         idx = indices[title]
 #         print(temp_MvRt['genres'].iloc[idx])
-#         if idx is not None:        
+#         if idx is not None:
 #             sim_scores = list(enumerate(sim_matrix[idx]))
 #             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 #             sim_scores = sim_scores[1:21]
@@ -314,13 +334,12 @@ indices = pd.Series(temp_MvRt.index, index=temp_MvRt['title']).drop_duplicates()
 #         return "No movies found. Please check your input"
 
 
-
 def content_based_recommender(title, sim_scores=sim_matrix):
     title = title.lower()
     try:
         idx = indices[title]
         print(temp_MvRt['genres'].iloc[idx])
-        if idx is not None:        
+        if idx is not None:
             sim_scores = list(enumerate(sim_matrix[idx]))
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
             sim_scores = sim_scores[1:21]
@@ -329,9 +348,4 @@ def content_based_recommender(title, sim_scores=sim_matrix):
         else:
             return "No movies found. Please check your input"
     except:
-            return "No movies found. Please check your input"
-    
-
-print(content_based_recommender('toy story',sim_matrix))
-
-
+        return "No movies found. Please check your input"

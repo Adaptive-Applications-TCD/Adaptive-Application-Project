@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from movie_recommender import *
 
 import pandas as pd
@@ -18,9 +18,9 @@ def hello():
 def recommend(id):
     content = content_based_recommender(id)
     if isinstance(content, str):
-        return content
+        return jsonify(content)
     else:
-        return content.to_dict()
+        return jsonify(content.to_dict())
 
 
 if __name__ == "__main__":

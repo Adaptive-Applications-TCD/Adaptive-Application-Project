@@ -35,7 +35,7 @@ export default function LoginPage() {
     return (
         <div className="LoginPage">
             <Container>
-                <Card sx={{ mr: 30, ml: 30, mt: 20 }} >
+                <Card sx={{ mr: 30, ml: 30, mt: 20 }} variant='outlined'>
                     <CardContent>
                         <Typography variant='h5'>Log In</Typography>
                         <div><TextField fullWidth label="Email" variant="outlined" sx={{ mt: 5 }} onChange={handleEmail}></TextField></div>

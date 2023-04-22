@@ -63,6 +63,7 @@ print("-"*25)
 # Unique of Rating points in the dataset:
 print("Unique Rating points:", ratings.rating.unique())
 
+
 # Combine table for movies and ratings
 MvRt_dataset = pd.merge(movies, ratings, on="movieId")
 # Extracting movie release years into one column
@@ -332,3 +333,5 @@ def content_based_recommender(title, sim_scores=sim_matrix):
     
 
 print(content_based_recommender('toy story',sim_matrix))
+
+

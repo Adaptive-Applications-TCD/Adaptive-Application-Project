@@ -54,6 +54,7 @@ movies = movies.drop(bad_row.index, axis=0)
 movies.shape
 
 
+
 # Combine table for movies and ratings
 MvRt_dataset = pd.merge(movies, ratings, on="movieId")
 # Extracting movie release years into one column

@@ -45,6 +45,10 @@ export default function HomeToolbar() {
         logout()
     }
 
+    function handleSettings() {
+        router.push('/settings')
+    }
+
     return (
         <div>
             <AppBar position="static" color="primary" variant="outlined">
@@ -71,7 +75,7 @@ export default function HomeToolbar() {
                             'aria-labelledby': 'basic-button',
                         }}
                     >
-                        <MenuItem>
+                        <MenuItem onClick={handleSettings}>
                             <ListItemIcon>
                                 <SettingsIcon fontSize="small" />
                             </ListItemIcon>

@@ -20,7 +20,7 @@ def recommend(id):
     if isinstance(content, str):
         return jsonify(content)
     else:
-        return jsonify(content.to_dict())
+        return jsonify(content)
 
 
 if __name__ == "__main__":

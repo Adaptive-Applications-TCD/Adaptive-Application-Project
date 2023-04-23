@@ -51,7 +51,7 @@ export default function HomeToolbar() {
 
     return (
         <div>
-            <AppBar position="static" color="primary" variant="outlined">
+            <AppBar position="static" color="primary" elevation={0}>
                 <Toolbar>
                     <IconButton
                         size="large"

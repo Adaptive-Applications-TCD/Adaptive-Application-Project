@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 export async function login(email, password) {
     try {
+        console.log('Logged In as: ' + email)
         await signInWithEmailAndPassword(auth, email, password)
         return true
     } catch (e) {
@@ -12,5 +13,6 @@ export async function login(email, password) {
 }
 
 export async function logout() {
-    signOut(auth)
+    await auth.signOut()
+    console.log('Logged Out')
 }

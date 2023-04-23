@@ -1,13 +1,13 @@
 import { useEffect, useContext, useState } from 'react'
 import { authUserContext } from '@/context/AuthUserContext'
-import { Card, Container, TextField, CardContent, IconButton, Typography, CardActions, List, ListItem, ListItemAvatar, Avatar, ListItemText, Grid } from '@mui/material'
+import { Card, Container, TextField, CardContent, IconButton, Typography, CardActions, List, ListItem, ListItemAvatar, Avatar, ListItemText, Grid, CardHeader } from '@mui/material'
 import MovieIcon from '@mui/icons-material/Movie';
 import { Search } from '@mui/icons-material'
 import HomeToolbar from '@/components/toolbar'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState()
-  const [movies, setMovies] = useState([{ title: "killer, the", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }])
+  const [movies, setMovies] = useState([{ title: "killer, the", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }])
 
 
   const handleSearch = (e) => {
@@ -26,6 +26,7 @@ export default function Home() {
       <HomeToolbar color="primary" />
       <Container fixed>
         <Card sx={{ mt: 5, ml: 30, mr: 30 }} variant='outlined'>
+          <CardHeader title="Search Movies" />
           <CardContent>
             <form onSubmit={handleSearch}>
               <TextField
@@ -34,10 +35,11 @@ export default function Home() {
                 onInput={(e) => {
                   setSearchQuery(e.target.value);
                 }}
-                label="Enter a Movie"
+                label="Enter a Key Word"
                 variant="outlined"
                 placeholder="Search..."
                 size="small"
+                sx={{ width: 598 }}
               />
               <IconButton type="submit" aria-label="search">
                 <Search color='primary' />
@@ -45,25 +47,30 @@ export default function Home() {
             </form>
           </CardContent>
         </Card>
-        <Grid>
-          {movies.map((movie, index) =>
-            // <ListItem
-            //   key={index}
-            // >
-            //   <ListItemAvatar>
-            //     <Avatar>
-            //       <MovieIcon />
-            //     </Avatar>
-            //   </ListItemAvatar>
-            //   <ListItemText primary={movie.title} secondary={movie.genres} />
-            // </ListItem>
-            <Card key={index} sx={{ width: 200 }}>
-              <CardContent>
-                <Typography>{movie.title}</Typography>
-              </CardContent>
-            </Card>
-          )}
-        </Grid>
+        <div style={{ marginTop: 50, maxHeight: 600 }}>
+          <Card variant='outlined' sx={{ ml: 30, mr: 30, overflowY: 'scroll', maxHeight: 400 }}>
+            <CardHeader title="Results" fixed />
+            {movies.map((movie, index) =>
+              <ListItem
+                key={index}
+              >
+                <ListItemAvatar>
+                  <Avatar>
+                    <MovieIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary={movie.title} secondary={movie.genres} />
+              </ListItem>
+              // <Card sx={{ minWidth: 200, m: 1 }} key={index} variant='outlined'>
+              //   <CardContent>
+              //     <Typography>{movie.title}</Typography>
+              //   </CardContent>
+              // </Card>
+
+            )}
+          </Card>
+
+        </div>
 
       </Container>
     </>

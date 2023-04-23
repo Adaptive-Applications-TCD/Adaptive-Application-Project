@@ -1,18 +1,21 @@
 import LoginIcon from '@mui/icons-material/Login';
-import { Container, TextField, Typography, Button, CardContent, CardActions, Card } from "@mui/material";
-import { useState } from "react";
+import { Container, TextField, Typography, Button, CardContent, CardActions, Card, CircularProgress } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
 import { login } from "@/utils/authUtils"
 import { useRouter } from 'next/router'
+import { authUserContext } from '@/context/AuthUserContext';
 
 
 export default function LoginPage() {
 
     const [email, setEmail] = useState()
     const [password, setPassword] = useState()
+    const [loading, setLoading] = useState(false)
 
     const router = useRouter();
 
     function handleLogin() {
+        setLoading(true)
         let success = login(email, password)
 
         if (success) {
@@ -43,8 +46,9 @@ export default function LoginPage() {
                     </CardContent>
                     <CardActions>
                         <Button startIcon={<LoginIcon />} onClick={handleLogin}>Log In</Button>
+                        {loading ? <CircularProgress></CircularProgress> : <></>}
                     </CardActions>
-                </Card >
+                </Card>
             </Container>
         </div>
     );

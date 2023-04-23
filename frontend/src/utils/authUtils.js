@@ -1,15 +1,14 @@
 import { auth } from './firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export async function login(email, password) {
-    try {
+    signInWithEmailAndPassword(auth, email, password).then(() => {
         console.log('Logged In as: ' + email)
-        await signInWithEmailAndPassword(auth, email, password)
         return true
-    } catch (e) {
-        console.log(e)
+    }).catch((e) => {
+        console.log('ERROR')
         return false
-    }
+    })
 }
 
 export async function logout() {

@@ -338,15 +338,23 @@ def content_based_recommender(title, sim_scores=sim_matrix):
     title = title.lower()
     try:
         idx = indices[title]
-        print(type(indices))
+        #print(type(indices))
+        final_list = []
         if idx is not None:
             sim_scores = list(enumerate(sim_matrix[idx]))
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
             sim_scores = sim_scores[1:21]
             movie_indices = [i[0] for i in sim_scores]
             movieList = temp_MvRt[['title', 'genres']].iloc[movie_indices].values.tolist()
-            return movieList
+            for movie in movieList:
+                movie_obj = {"Title": movie[0], "Genres": movie[1]}
+                final_list.append(movie_obj)
+            return final_list
         else:
             return "No movies found. Please check your input"
     except:
         return "No movies found. Please check your input"
+    
+
+
+

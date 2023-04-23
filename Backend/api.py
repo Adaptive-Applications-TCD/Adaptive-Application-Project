@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from movie_recommender import *
+from collaborative_recommender import *
 
 import pandas as pd
 import numpy as np
@@ -21,6 +22,23 @@ def recommend(id):
         return jsonify(content)
     else:
         return jsonify(content)
+    
+
+#endpoint for collaborative filtering based on 10 similar users
+@app.route("/cfrecommend/<value>")
+def cbRecommend(value):
+    content = collaborative_recommender(value)
+    return jsonify(content)
+
+
+#endpoint for genre base content filtering
+@app.route("/genre/<value>")
+def genre(value):
+    genres = [value]
+    content = genreRecommender(genres)
+    return jsonify(content)
+
+
 
 
 if __name__ == "__main__":

@@ -12,7 +12,10 @@ export default function Home() {
 
     const handleSearch = (e) => {
         e.preventDefault()
-        fetch('/api/cfrecommend/' + searchQuery).then(res => res.json()).then(response => setMovies(response))
+        fetch('/api/cfrecommend/' + searchQuery).then(res => res.json()).then(response => {
+            console.log(response)
+            setMovies(response)
+        })
     }
 
     return (
@@ -20,16 +23,16 @@ export default function Home() {
             <HomeToolbar color="primary" />
             <Container fixed>
                 <Card sx={{ mt: 5, ml: 30, mr: 30 }} variant='outlined'>
-                    <CardHeader title="Search Movies" />
+                    <CardHeader title="Collaborative Based Filtering" />
                     <CardContent>
                         <form onSubmit={handleSearch}>
                             <TextField
                                 id="search-bar"
-                                className="text"
                                 onInput={(e) => {
                                     setSearchQuery(e.target.value);
                                 }}
-                                label="Enter a Key Word"
+                                type="number"
+                                label="Enter a User Number"
                                 variant="outlined"
                                 placeholder="Search..."
                                 size="small"
@@ -53,7 +56,7 @@ export default function Home() {
                                         <MovieIcon />
                                     </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText primary={movie.Title} secondary={movie.Genres} />
+                                <ListItemText primary={movie.Title} secondary={"Score: " + movie.Score} />
                             </ListItem>
                         )}
                     </Card>

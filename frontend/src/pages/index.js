@@ -20,6 +20,7 @@ export default function Home() {
     e.preventDefault()
     if (genre) {
       fetch('/api/genre/' + searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1)).then(res => res.json()).then(response => {
+        console.log(response)
         setMovies(response)
       }).catch((e) => console.log(e))
     } else {
@@ -43,7 +44,7 @@ export default function Home() {
       <HomeToolbar color="primary" />
       <Container fixed>
         <Card sx={{ mt: 5, ml: 30, mr: 30 }} variant='outlined'>
-          <CardHeader title="Search Movies" />
+          <CardHeader title="Content Based Filtering" />
           <CardContent>
             <Tooltip title="Enable genre search to search for genres">
               <FormControlLabel control={<Switch {...label} />} label="Enable Genre Search" onChange={handleGenre}></FormControlLabel>
@@ -55,7 +56,7 @@ export default function Home() {
                 onInput={(e) => {
                   setSearchQuery(e.target.value);
                 }}
-                label="Enter a Key Word"
+                label={genre ? "Enter a Genre" : "Enter a Title"}
                 variant="outlined"
                 placeholder="Search..."
                 size="small"
@@ -69,7 +70,7 @@ export default function Home() {
         </Card>
         <div style={{ marginTop: 50, maxHeight: 600 }}>
           <Card variant='outlined' sx={{ ml: 30, mr: 30, overflowY: 'scroll', maxHeight: 400 }}>
-            <CardHeader title="Results" fixed />
+            <CardHeader title="Results" />
             {movies.map((movie, index) =>
               <ListItem
                 key={index}
@@ -79,7 +80,7 @@ export default function Home() {
                     <MovieIcon />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary={movie.Title} secondary={movie.Genres} />
+                <ListItemText primary={movie.Title} secondary={genre ? movie.Year : movie.Genres} />
               </ListItem>
             )}
           </Card>

@@ -6,7 +6,7 @@ export async function login(email, password) {
         console.log('Logged In as: ' + email)
         return true
     }).catch((e) => {
-        console.log('ERROR')
+        console.log('ERROR' + e)
         return false
     })
 }

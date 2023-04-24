@@ -1,24 +1,41 @@
 import { useEffect, useContext, useState } from 'react'
 import { authUserContext } from '@/context/AuthUserContext'
-import { Card, Container, TextField, CardContent, IconButton, Typography, CardActions, List, ListItem, ListItemAvatar, Avatar, ListItemText, Grid, CardHeader } from '@mui/material'
+import {
+  Card, Container, TextField, CardContent, IconButton, Typography,
+  CardActions, List,
+  ListItem, ListItemAvatar, Avatar, ListItemText, Grid, CardHeader, Tooltip, FormControlLabel, Switch
+} from '@mui/material'
 import MovieIcon from '@mui/icons-material/Movie';
 import { Search } from '@mui/icons-material'
 import HomeToolbar from '@/components/toolbar'
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState()
-  const [movies, setMovies] = useState([{ title: "killer, the", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }, { title: "face/off", genres: "Action|Crime|Drama|Thriller" }])
+  const [movies, setMovies] = useState([])
+  const [genre, setGenre] = useState(false)
 
+  const label = { inputProps: { 'aria-label': 'Switch demo' }, label: 'Colourblind Mode' };
 
   const handleSearch = (e) => {
     e.preventDefault()
-    fetch('/api/recommend/' + searchQuery).then(res => res.json()).then(response => console.log(response))
+    if (genre) {
+      fetch('/api/genre/' + searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1)).then(res => res.json()).then(response => {
+        setMovies(response)
+      }).catch((e) => console.log(e))
+    } else {
+      fetch('/api/recommend/' + searchQuery).then(res => res.json()).then(response => {
+        if (typeof response == 'object') {
+          setMovies(response)
+        } else {
+          setMovies([])
+        }
+      }).catch((e) => console.log(e))
+    }
   }
 
-  const renderMovies = () => {
-    return movies.map((movie) => {
-      <Typography>{movie.title}</Typography>
-    })
+  const handleGenre = (e) => {
+    const value = e.target.checked
+    setGenre(value)
   }
 
   return (
@@ -28,6 +45,9 @@ export default function Home() {
         <Card sx={{ mt: 5, ml: 30, mr: 30 }} variant='outlined'>
           <CardHeader title="Search Movies" />
           <CardContent>
+            <Tooltip title="Enable genre search to search for genres">
+              <FormControlLabel control={<Switch {...label} />} label="Enable Genre Search" onChange={handleGenre}></FormControlLabel>
+            </Tooltip>
             <form onSubmit={handleSearch}>
               <TextField
                 id="search-bar"
@@ -59,17 +79,10 @@ export default function Home() {
                     <MovieIcon />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary={movie.title} secondary={movie.genres} />
+                <ListItemText primary={movie.Title} secondary={movie.Genres} />
               </ListItem>
-              // <Card sx={{ minWidth: 200, m: 1 }} key={index} variant='outlined'>
-              //   <CardContent>
-              //     <Typography>{movie.title}</Typography>
-              //   </CardContent>
-              // </Card>
-
             )}
           </Card>
-
         </div>
 
       </Container>

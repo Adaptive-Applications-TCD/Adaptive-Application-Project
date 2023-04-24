@@ -10,6 +10,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import MenuItem from '@mui/material/MenuItem';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Link from 'next/link'
+import GroupsIcon from '@mui/icons-material/Groups';
+import LocalMoviesIcon from '@mui/icons-material/LocalMovies';
 import { authUserContext } from '@/context/AuthUserContext'
 import { useContext, useEffect, useState } from 'react';
 import { logout } from '@/utils/authUtils';
@@ -49,6 +51,14 @@ export default function HomeToolbar() {
         router.push('/settings')
     }
 
+    function handleContent() {
+        router.push('/')
+    }
+
+    function handleCollab() {
+        router.push('/collab')
+    }
+
     return (
         <div>
             <AppBar position="static" color="primary" elevation={0}>
@@ -75,6 +85,18 @@ export default function HomeToolbar() {
                             'aria-labelledby': 'basic-button',
                         }}
                     >
+                        <MenuItem onClick={handleContent}>
+                            <ListItemIcon>
+                                <LocalMoviesIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Content Based Filtering</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={handleCollab}>
+                            <ListItemIcon>
+                                <GroupsIcon fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Collaborative Based Filtering</ListItemText>
+                        </MenuItem>
                         <MenuItem onClick={handleSettings}>
                             <ListItemIcon>
                                 <SettingsIcon fontSize="small" />

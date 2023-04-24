@@ -16,8 +16,10 @@ from nltk.corpus import wordnet
 
 import warnings; warnings.simplefilter('ignore')
 
+# User based collaborative filtering taken from a tutorial notebook ref: [1] https://colab.research.google.com/drive/1cN44RlIEaB28FTD30qFiHkN3rqcDgcng?usp=sharing#scrollTo=pfdmVtLIP7IM
 
 def collaborative_filtering_reccomender(number_similar_users, number_movies, user_id ):
+    # [1]
     ratings=pd.read_csv('ratings.csv')
     movies = pd.read_csv('movies.csv')
     df = pd.merge(ratings, movies, on='movieId', how='inner')
@@ -65,7 +67,7 @@ def collaborative_filtering_reccomender(number_similar_users, number_movies, use
 
 def collaborative_recommender(user):
     final_list = []
-    x,y,z = collaborative_filtering_reccomender(10,20,int(user))
+    x,y,z = collaborative_filtering_reccomender(10,50,int(user))
     #print(f'the predicted rating: \n', y)
     #print(f'The average movie rating for user {2}: ', z)
     x = x.values.tolist()
@@ -76,18 +78,20 @@ def collaborative_recommender(user):
 
 
 
-collaborative_recommender(2)
+#collaborative_recommender(2)
 
 
-
+# First time user recommender from a tutorial ref: [2] https://www.kaggle.com/code/rounakbanik/movie-recommender-systems/notebook
 
 def weighted_rating(x):
+    # [2]
     v = x['vote_count']
     R = x['vote_average']
     return (v/(v+m) * R) + (m/(m+v) * C)
 
 
 def build_chart(genre, percentile=0.85):
+    # [2]
     df = gen_md[gen_md['genre'] == genre]
     vote_counts = df[df['vote_count'].notnull()]['vote_count'].astype('int')
     vote_averages = df[df['vote_average'].notnull()]['vote_average'].astype('int')
@@ -106,11 +110,12 @@ def build_chart(genre, percentile=0.85):
 def first_time_user(genres):
     list_movies = pd.DataFrame()
     for x in genres:
-        top_movies = build_chart(x).head(15)
+        top_movies = build_chart(x).head(50)
         list_movies = pd.concat([top_movies,list_movies])
     list_movies = list_movies.sort_values('wr', ascending=False).head(250)
     return list_movies
 
+# [2]
 md = pd.read_csv('movies_metadata.csv', engine='python')
 
 md['genres'] = md['genres'].fillna('[]').apply(literal_eval).apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else [])

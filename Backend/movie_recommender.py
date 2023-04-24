@@ -343,7 +343,7 @@ def content_based_recommender(title, sim_scores=sim_matrix):
         if idx is not None:
             sim_scores = list(enumerate(sim_matrix[idx]))
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-            sim_scores = sim_scores[1:21]
+            sim_scores = sim_scores[1:51]
             movie_indices = [i[0] for i in sim_scores]
             movieList = temp_MvRt[['title', 'genres']].iloc[movie_indices].values.tolist()
             for movie in movieList:

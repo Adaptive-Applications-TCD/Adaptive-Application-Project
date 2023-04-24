@@ -67,7 +67,7 @@ def collaborative_filtering_reccomender(number_similar_users, number_movies, use
 
 def collaborative_recommender(user):
     final_list = []
-    x,y,z = collaborative_filtering_reccomender(10,20,int(user))
+    x,y,z = collaborative_filtering_reccomender(10,50,int(user))
     #print(f'the predicted rating: \n', y)
     #print(f'The average movie rating for user {2}: ', z)
     x = x.values.tolist()
@@ -78,7 +78,7 @@ def collaborative_recommender(user):
 
 
 
-collaborative_recommender(2)
+#collaborative_recommender(2)
 
 
 # First time user recommender from a tutorial ref: [2] https://www.kaggle.com/code/rounakbanik/movie-recommender-systems/notebook
@@ -110,7 +110,7 @@ def build_chart(genre, percentile=0.85):
 def first_time_user(genres):
     list_movies = pd.DataFrame()
     for x in genres:
-        top_movies = build_chart(x).head(15)
+        top_movies = build_chart(x).head(50)
         list_movies = pd.concat([top_movies,list_movies])
     list_movies = list_movies.sort_values('wr', ascending=False).head(250)
     return list_movies

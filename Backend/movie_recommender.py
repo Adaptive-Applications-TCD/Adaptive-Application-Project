@@ -338,7 +338,7 @@ def content_based_recommender(title, sim_scores=sim_matrix):
     title = title.lower()
     try:
         idx = indices[title]
-        print(type(indices))
+        #print(type(indices))
         final_list = []
         if idx is not None:
             sim_scores = list(enumerate(sim_matrix[idx]))
@@ -354,6 +354,7 @@ def content_based_recommender(title, sim_scores=sim_matrix):
             return "No movies found. Please check your input"
     except:
         return "No movies found. Please check your input"
+
     
 
 

@@ -25,6 +25,7 @@ def recommend(id):
     
 
 #endpoint for collaborative filtering based on 10 similar users
+#The value inputted is a userid that extends from user 1 to 610
 @app.route("/cfrecommend/<value>")
 def cbRecommend(value):
     content = collaborative_recommender(value)
@@ -32,6 +33,7 @@ def cbRecommend(value):
 
 
 #endpoint for genre base content filtering
+#The value inputted is a genre but its first letter must be capitalized
 @app.route("/genre/<value>")
 def genre(value):
     genres = [value]
